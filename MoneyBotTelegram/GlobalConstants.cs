@@ -11,5 +11,7 @@ public class GlobalConstants
     public class Callbacks
     {
         public const string CategoryPrefix = "category";
+        public const string BackPrefix = "back";
+        public const string MainMenuPrefix = "main_menu";
     }
 }

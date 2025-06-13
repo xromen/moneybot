@@ -4,7 +4,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using User = MoneyBotTelegram.Infrasctructure.Entities.User;
 
-namespace MoneyBotTelegram.Commands;
+namespace MoneyBotTelegram.Commands.Account;
 
 public class JoinCommandHandler(
     IUserService userService,
@@ -14,11 +14,11 @@ public class JoinCommandHandler(
 
     public override string Command => Metadata.Command;
 
-    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
+    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
         var user = message.From!;
 
-        if(await userService.ExistsAsync(user.Id, cancellationToken))
+        if (await userService.ExistsAsync(user.Id, cancellationToken))
         {
             await bot.SendMessage(message.Chat.Id, "Вы уже зарегистрированы!");
             return;

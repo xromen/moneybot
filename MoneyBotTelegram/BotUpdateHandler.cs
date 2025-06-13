@@ -20,25 +20,20 @@ public class BotUpdateHandler(
             var commandRouter = scope.ServiceProvider.GetRequiredService<CommandRouter>();
             var callbackRouter = scope.ServiceProvider.GetRequiredService<CallbackQueryRouter>();
 
-            long userId = 0;
+            bool handled = false;
 
             switch (update.Type)
             {
                 case UpdateType.Message:
-                    userId = update.Message!.From.Id;
-                    await commandRouter.HandleCommandAsync(bot, update.Message!, cancellationToken);
+                    handled = await commandRouter.HandleCommandAsync(bot, update.Message!, cancellationToken);
                     break;
                 case UpdateType.CallbackQuery:
-                    userId = update.CallbackQuery!.From.Id;
-                    await callbackRouter.HandleCallbackAsync(bot, update.CallbackQuery!, cancellationToken);
+                    handled = await callbackRouter.HandleCallbackAsync(bot, update.CallbackQuery!, cancellationToken);
                     break;
                 default:
                     await HandleUnknownUpdateAsync(update);
-                    break;
+                    return;
             };
-
-            var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
-            await navigationService.SetCurrent(userId, update);
         }
         catch (Exception exception)
         {

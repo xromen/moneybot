@@ -1,4 +1,6 @@
-﻿using Telegram.Bot;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MoneyBotTelegram.Services;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace MoneyBotTelegram.Commands.Common;
@@ -7,14 +9,17 @@ public class CommandRouter
 {
     private readonly List<IBotCommandHandler> _handlers;
     private readonly IBotCommandHandler _defaultHandler;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CommandRouter> _logger;
 
-    public CommandRouter(IEnumerable<IBotCommandHandler> handlers, ILogger<CommandRouter> logger)
+    public CommandRouter(IEnumerable<IBotCommandHandler> handlers, IServiceProvider serviceProvider, ILogger<CommandRouter> logger)
     {
         _handlers = handlers.ToList();
 
         _defaultHandler = _handlers.FirstOrDefault(x => x is DefaultCommandHandler)
                           ?? throw new InvalidOperationException("Default command handler not found");
+
+        _serviceProvider = serviceProvider;
 
         _logger = logger;
     }
@@ -31,15 +36,28 @@ public class CommandRouter
         return handler;
     }
 
-    public Task HandleCommandAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
+    public async Task<bool> HandleCommandAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
         if(string.IsNullOrEmpty(message.Text) || message.From == null)
-            return Task.CompletedTask;
+            return false;
 
         _logger.LogInformation("Полученное сообщение от {UserId}: {Text}", message.From.Id, message.Text);
 
-        var handle = GetHandlerWithDefault(message);
+        var handler = GetHandlerWithDefault(message);
 
-        return handle.HandleAsync(bot, message, cancellationToken);
+        await handler.HandleAsync(bot, message, cancellationToken, editMessage);
+
+        var navigationState = new NavigationState()
+        {
+            HandlerName = handler.GetType().Name,
+            CommandOrCallback = message.Text,
+            IsMessage = true
+        };
+
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
+        await navigationService.SetCurrent(message.From.Id, navigationState);
+
+        return true;
     }
 }

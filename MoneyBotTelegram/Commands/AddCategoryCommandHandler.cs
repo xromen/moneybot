@@ -1,10 +1,11 @@
-﻿using MoneyBotTelegram.Commands.Common;
+﻿using MoneyBotTelegram.Commands.Account;
+using MoneyBotTelegram.Commands.Common;
 using MoneyBotTelegram.Infrasctructure.Entities;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace MoneyBotTelegram.Commands.CategoryCommands;
+namespace MoneyBotTelegram.Commands;
 
 public class AddCategoryArgs
 {
@@ -12,7 +13,7 @@ public class AddCategoryArgs
     public long? ParentId { get; set; }
 }
 
-public enum State
+public enum AddCategoryState
 {
     Idle = 0,
     EnteringName = 1
@@ -21,7 +22,7 @@ public enum State
 public class AddCategoryCommandHandler(
     IUserService userService,
     IDraftService<Category> draft,
-    IConversationState<State> conversation,
+    IConversationState<AddCategoryState> conversation,
     IEntityCacheService<Category> categoryCache,
     IKeyboardFactory keyboardFactory,
     ILogger<JoinCommandHandler> logger) : BaseCommand<AddCategoryArgs>, ICommandMetadata
@@ -32,10 +33,10 @@ public class AddCategoryCommandHandler(
 
     public override bool CanHandle(Message message)
     {
-        return base.CanHandle(message) || conversation.GetState(message.From!.Id) != State.Idle;
+        return base.CanHandle(message) || conversation.GetState(message.From!.Id) != AddCategoryState.Idle;
     }
 
-    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
+    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
         var user = message.From!;
         var text = message.Text!;
@@ -52,10 +53,10 @@ public class AddCategoryCommandHandler(
 
         switch (state)
         {
-            case State.Idle:
+            case AddCategoryState.Idle:
                 var args = ParseArgs(message);
 
-                conversation.SetState(user.Id, State.EnteringName);
+                conversation.SetState(user.Id, AddCategoryState.EnteringName);
                 draft.UpdateDraft(user.Id, c => c.ParentId = args.ParentId);
 
                 await bot.SendMessage(
@@ -63,13 +64,13 @@ public class AddCategoryCommandHandler(
                     "Введите наименование категории");
                 return;
 
-            case State.EnteringName:
+            case AddCategoryState.EnteringName:
                 var category = draft.GetDraft(user.Id);
                 category.Name = text;
 
                 await categoryCache.AddAsync(category);
 
-                conversation.SetState(user.Id, State.Idle);
+                conversation.SetState(user.Id, AddCategoryState.Idle);
 
                 draft.ClearDraft(user.Id);
 
@@ -81,39 +82,5 @@ public class AddCategoryCommandHandler(
                     replyMarkup: keyboard);
                 return;
         }
-
-        //var parameters = text.Split(' ');
-
-        //if (parameters.Length == 2 && parameters[0].Equals(Command, StringComparison.OrdinalIgnoreCase))
-        //{
-        //    if (long.TryParse(parameters[1], out var parentId))
-        //    {
-        //        _userParentCategory[user.Id] = parentId;
-        //    }
-        //    else
-        //    {
-        //        return new("Неверно передан Id родительской категории");
-        //    }
-
-        //    stateStore.SetUserState(Command, user.Id, UserState.WaitingArgument);
-
-        //    return new("Введите название новой категории", SaveInHistory: false);
-        //}
-
-        //if (stateStore.GetUserState(user.Id)?.UserState != UserState.None)
-        //{
-        //    var parentId = _userParentCategory[user.Id];
-        //    //Category? parentCategory = parentId == -1 ? null : await categoryCache.FindAsync(parentId);
-
-        //    var category = new Category() { Name = text, ParentId = parentId == -1 ? null : parentId };
-
-        //    await categoryCache.AddAsync(category);
-
-        //    stateStore.SetUserState(Command, user.Id, UserState.None);
-
-        //    return new("Категория создана", RedirectCallbackData: CategoryCallbackHandler.MakeCallbackData(parentId), SaveInHistory: false);
-        //}
-
-        //return new("Ошибка");
     }
 }

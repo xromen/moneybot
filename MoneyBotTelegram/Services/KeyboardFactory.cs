@@ -1,5 +1,7 @@
 ﻿using MoneyBotTelegram.CallbackQueries;
 using MoneyBotTelegram.Commands;
+using MoneyBotTelegram.Commands.Account;
+using MoneyBotTelegram.Commands.Transaction;
 using MoneyBotTelegram.Infrasctructure.Entities;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -10,6 +12,7 @@ public interface IKeyboardFactory
     IKeyboardFactory AddButton(string text, string command);
     IKeyboardFactory AddNewLine();
     IKeyboardFactory AddBackButton();
+    IKeyboardFactory AddToMainMenuButton();
     IKeyboardFactory Empty();
     bool IsEmpty();
     InlineKeyboardMarkup Create();
@@ -46,7 +49,11 @@ public class KeyboardFactory(IUserService userService) : IKeyboardFactory
     }
     public IKeyboardFactory AddBackButton()
     {
-        return AddButton("🔙 Назад", "BackCallbackHandler.BackPrefix");
+        return AddButton("🔙 Назад", GlobalConstants.Callbacks.BackPrefix);
+    }
+    public IKeyboardFactory AddToMainMenuButton()
+    {
+        return AddButton("🏠 Домой", GlobalConstants.Callbacks.MainMenuPrefix);
     }
     public IKeyboardFactory Empty()
     {
@@ -115,7 +122,11 @@ public class KeyboardFactory(IUserService userService) : IKeyboardFactory
             ]);
 
             buttons.Add([
-                InlineKeyboardButton.WithCallbackData("➕ Транзакция", "TransactionCommandHandler.Metadata.Command"),
+                InlineKeyboardButton.WithCallbackData("➕ Список транзакций", TransactionsGetCommandHandler.Metadata.Command),
+            ]);
+
+            buttons.Add([
+                InlineKeyboardButton.WithCallbackData("➕ Транзакция", AddTransactionCommandHandler.Metadata.Command),
             ]);
         }
         else

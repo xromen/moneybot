@@ -1,0 +1,25 @@
+name: Build and Deploy to Server
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Docker image
+      run: docker build -t money-bot:latest MoneyBotTelegram
+
+    - name: Stop and remove old container
+      run: |
+        docker stop money-bot || true
+        docker rm money-bot || true
+
+    - name: Run new container
+      run: |
+        docker run -d --name money-bot -p 80:8080 money-bot:latest
