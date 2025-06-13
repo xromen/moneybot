@@ -1,14 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MoneyBotTelegram.Commands.Common;
+using MoneyBotTelegram.Commands.Family;
 using MoneyBotTelegram.Infrasctructure;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace MoneyBotTelegram.Commands;
+namespace MoneyBotTelegram.Commands.Account;
 
 public class MeCommandHandler(
-    IUserService userService, 
+    IUserService userService,
     ApplicationDbContext db,
     IKeyboardFactory keyboardFactory
     ) : BaseCommand, ICommandMetadata
@@ -17,7 +18,7 @@ public class MeCommandHandler(
 
     public override string Command => Metadata.Command;
 
-    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
+    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
         var userId = message.From?.Id;
 
@@ -29,14 +30,14 @@ public class MeCommandHandler(
             return;
         }
 
-        string familyOwner = string.Empty;
-        bool isOwnerFamily = await db.Users.Include(c => c.FamilyParent).AnyAsync(c => c.FamilyParent != null && c.FamilyParent.Id == userId);
+        var familyOwner = string.Empty;
+        var isOwnerFamily = user.FamilyParentId == null;//await db.Users.Include(c => c.FamilyParent).AnyAsync(c => c.FamilyParent != null && c.FamilyParent.Id == userId);
 
         if (isOwnerFamily)
         {
             familyOwner = "Вы";
         }
-        else if(user.FamilyParent != null)
+        else if (user.FamilyParent != null)
         {
             familyOwner = user.FamilyParent.FirstName;
         }
@@ -45,22 +46,22 @@ public class MeCommandHandler(
             familyOwner = "Нет";
         }
 
-        //IKeyboardFactory keyboard = keyboardFactory.Empty();
-        //if(user.FamilyParent != null)
-        //{
-        //    keyboard.AddButton("❌ Выйти из семьи", LeaveFamilyCommandHandler.Metadata.Command);
-        //}
+        var keyboard = keyboardFactory.Empty();
+        if (user.FamilyParent != null)
+        {
+            keyboard.AddButton("❌ Выйти из семьи", LeaveFamilyCommandHandler.Metadata.Command);
+        }
         //else if (user.FamilyParent == null && !isOwnerFamily)
         //{
         //    keyboard.AddButton("➕ Присоединиться к семье", JoinFamilyCommandHandler.Metadata.Command);
         //}
-        //if (isOwnerFamily)
-        //{
-        //    keyboard.AddButton("👨‍👩‍👦 Управление семьей", FamilySettingsCommandHandler.Metadata.Command);
-        //}
+        if (isOwnerFamily)
+        {
+            keyboard.AddButton("👨‍👩‍👦 Управление семьей", FamilySettingsCommandHandler.Metadata.Command);
+        }
 
-        //keyboard.AddNewLine()
-        //    .AddBackButton();
+        keyboard.AddNewLine()
+            .AddBackButton();
 
         var text = $"""
                     📋 Ваш профиль:
@@ -72,10 +73,17 @@ public class MeCommandHandler(
                     Владелец семьи: {familyOwner}
                     """;
 
-        await bot.SendMessage(
-            message.Chat.Id,
-            text
-            //replyMarkup: keyboard.Create()
-            );
+        if (editMessage)
+        {
+            await bot.EditMessageText(message.Chat.Id, message.Id, text, replyMarkup: keyboard.Create());
+        }
+        else
+        {
+            await bot.SendMessage(
+                message.Chat.Id,
+                text,
+                replyMarkup: keyboard.Create()
+                );
+        }
     }
 }

@@ -10,8 +10,13 @@ public static class ArgsParser<TArgs> where TArgs : new()
 {
     private static Dictionary<Type, PropertyInfo[]> _propertiesDict = new();
 
-    public static TArgs ParseArgs(string text, string? prefix = null, char separator = GlobalConstants.Separator)
+    public static TArgs? ParseArgs(string text, string? prefix = null, char separator = GlobalConstants.Separator)
     {
+        if (!string.IsNullOrEmpty(prefix) && !text.StartsWith(prefix))
+        {
+            return default;
+        }
+
         var splited = text.Split(separator).Where(c => !c.Equals(prefix, StringComparison.OrdinalIgnoreCase)).ToList();
 
         TArgs result = (TArgs)Activator.CreateInstance(typeof(TArgs))!;

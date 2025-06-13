@@ -2,16 +2,16 @@
 
 namespace MoneyBotTelegram.Infrasctructure.Entities
 {
-    public class Transaction : BaseEntity
+    public class MoneyTransaction : BaseEntity
     {
         [Required]
         public decimal Amount { get; set; }
 
         [Required]
-        public DateOnly Date { get; set; }
+        public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
         [Required]
-        public long Categoryid { get; set; }
+        public long CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
         public long? PlaceId { get; set; }
@@ -20,6 +20,8 @@ namespace MoneyBotTelegram.Infrasctructure.Entities
         [Required]
         public long UserId {  get; set; }
         public User User { get; set; } = null!;
+
+        public string? Description { get; set; }
 
         public List<PurchaseItem> Items { get; set; } = new List<PurchaseItem>();
     }

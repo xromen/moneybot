@@ -1,9 +1,10 @@
 ﻿using MoneyBotTelegram.Commands.Common;
+using MoneyBotTelegram.Commands.Family;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace MoneyBotTelegram.Commands;
+namespace MoneyBotTelegram.Commands.Account;
 
 public class StartCommandHandler(IKeyboardFactory keyboardFactory) : BaseCommand, ICommandMetadata
 {
@@ -11,7 +12,7 @@ public class StartCommandHandler(IKeyboardFactory keyboardFactory) : BaseCommand
 
     public override string Command => Metadata.Command;
 
-    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
+    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
         var text =
             $"""
@@ -25,6 +26,13 @@ public class StartCommandHandler(IKeyboardFactory keyboardFactory) : BaseCommand
 
         var keyboard = await keyboardFactory.CreateDefault(message.From.Id);
 
-        await bot.SendMessage(message.Chat.Id, text, replyMarkup: keyboard);
+        if (editMessage)
+        {
+            await bot.EditMessageText(message.Chat.Id, message.Id, text, replyMarkup: keyboard);
+        }
+        else
+        {
+            await bot.SendMessage(message.Chat.Id, text, replyMarkup: keyboard);
+        }
     }
 }

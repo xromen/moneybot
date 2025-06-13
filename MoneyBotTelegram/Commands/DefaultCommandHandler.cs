@@ -1,4 +1,5 @@
-﻿using MoneyBotTelegram.Commands.Common;
+﻿using MoneyBotTelegram.Commands.Account;
+using MoneyBotTelegram.Commands.Common;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -14,7 +15,7 @@ public class DefaultCommandHandler(IUserService userService) : BaseCommand
         return false;
     }
 
-    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
+    public override async Task HandleAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
         var userId = message.From?.Id;
 

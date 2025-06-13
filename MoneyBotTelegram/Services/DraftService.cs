@@ -12,7 +12,19 @@ public class DraftService<T> : IDraftService<T> where T : new()
 
     public void ClearDraft(long userId) => _drafts.Remove(userId);
 
-    public T GetDraft(long userId) => _drafts.TryGetValue(userId, out var draft) ? draft : new();
+    public T GetDraft(long userId)
+    {
+        if(_drafts.TryGetValue(userId, out var draft))
+        {
+            return draft;
+        }
+        else
+        {
+            draft = new T();
+            _drafts.Add(userId, draft);
+            return draft;
+        }
+    }
 
     public void UpdateDraft(long userId, Action<T> update)
     {

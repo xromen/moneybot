@@ -1,5 +1,5 @@
 ﻿using MoneyBotTelegram.CallbackQueries.Common;
-using MoneyBotTelegram.Commands.CategoryCommands;
+using MoneyBotTelegram.Commands;
 using MoneyBotTelegram.Commands.Common;
 using MoneyBotTelegram.Infrasctructure.Entities;
 using MoneyBotTelegram.Services;
