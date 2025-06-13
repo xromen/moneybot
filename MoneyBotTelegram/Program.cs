@@ -11,17 +11,25 @@ namespace MoneyBotTelegram
     {
         public static void Main(string[] args)
         {
+            var apiKey = Environment.GetEnvironmentVariable("TG_KEY");
+            var pgCs = Environment.GetEnvironmentVariable("PG_CS");
+
+            if(string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(pgCs))
+            {
+                throw new Exception("Not set environment variables");
+            }
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+                options.UseNpgsql(pgCs)
             .UseSnakeCaseNamingConvention());
 
             builder.Services.AddScoped(provider => provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
 
             builder.Services.AddSingleton(typeof(IEntityCacheService<>), typeof(EntityCacheService<>));
 
-            builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(builder.Configuration.GetValue<string>("BotConfiguration:Token")!));
+            builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(apiKey));
 
             builder.Services.AddScoped(typeof(IDraftService<>), typeof(DraftService<>));
             builder.Services.AddScoped(typeof(IConversationState<>), typeof(ConversationState<>));
@@ -53,6 +61,21 @@ namespace MoneyBotTelegram
             var app = builder.Build();
 
             app.MapGet("/", () => "Hello World!");
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                try
+                {
+                    var dbContext = services.GetRequiredService<ApplicationDbContext>();
+                    dbContext.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    throw new("migration fail", ex);
+                }
+            }
 
             app.Run();
         }
