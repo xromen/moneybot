@@ -22,4 +22,4 @@ jobs:
 
     - name: Run new container
       run: |
-        docker run -d --name money-bot -p 12345:8080 -e PG_CS="${{ secrets.PG_CS }}" -e TG_KEY="${{ secrets.TG_KEY }}" money-bot:latest
+        docker run -d --name money-bot -p 12345:8080 -e PG_CS="${{ secrets.PG_CS }}" -e TG_KEY="${{ secrets.TG_KEY }}" -e PROVERKA_CHEKA_API_KEY="${{ secrets.PROVERKA_CHEKA_API_KEY }}" money-bot:latest
