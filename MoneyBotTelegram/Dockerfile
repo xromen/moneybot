@@ -24,6 +24,9 @@ RUN dotnet publish "./MoneyBotTelegram.csproj" -c $BUILD_CONFIGURATION -o /app/p
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
+RUN apt-get update \Add commentMore actions
+    && apt-get install -y --no-install-recommends libfontconfig1 \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENV DOTNET_RUNNING_IN_CONTAINER=true
