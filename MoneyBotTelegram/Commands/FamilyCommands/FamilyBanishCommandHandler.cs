@@ -1,18 +1,21 @@
-﻿using MoneyBotTelegram.Commands.Account;
+﻿using Microsoft.EntityFrameworkCore;
+using MoneyBotTelegram.Commands.Account;
 using MoneyBotTelegram.Commands.Common;
 using MoneyBotTelegram.Common;
+using MoneyBotTelegram.Infrasctructure;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace MoneyBotTelegram.Commands.Family;
+namespace MoneyBotTelegram.Commands.FamilyCommands;
 
-public class FamilyBanishArgs
+public class FamilyBanishArgs : BaseArgs
 {
     public long? UserId { get; set; }
 }
 public class FamilyBanishCommandHandler(
     IUserService userService,
+    ApplicationDbContext db,
     IKeyboardFactory keyboardFactory,
     ILogger<JoinCommandHandler> logger) : BaseCommand<FamilyBanishArgs>, ICommandMetadata
 {
@@ -24,7 +27,7 @@ public class FamilyBanishCommandHandler(
     {
         var user = message.From!;
 
-        var dbUser = await userService.GetAsync(user.Id);
+        var dbUser = await db.Users.Include(c => c.Family).SingleOrDefaultAsync(c => c.Id == user.Id);
 
         if (dbUser == null)
         {
@@ -32,9 +35,7 @@ public class FamilyBanishCommandHandler(
             return;
         }
 
-        var family = await userService.GetYourFamilyAsync(user.Id);
-
-        if (!family.Any())
+        if (dbUser.Family == null || dbUser.Family.OwnerId != dbUser.Id)
         {
             await bot.SendMessage(message.Chat.Id, "У вас нет семьи или вы не являетесь ее владельцем");
             return;
@@ -48,15 +49,16 @@ public class FamilyBanishCommandHandler(
             return;
         }
 
-        var banishUser = await userService.GetAsync(args.UserId.Value);
+        var banishUser = await db.Users.Include(c => c.Family).SingleOrDefaultAsync(c => c.Id == args.UserId);
 
-        if (banishUser == null || banishUser.FamilyParent != null && banishUser.FamilyParent.Id != user.Id)
+        if (banishUser == null || banishUser.Family == null || banishUser.FamilyId != dbUser.FamilyId)
         {
             await bot.SendMessage(message.Chat.Id, "Ошибка в идентификации члена семьи");
             return;
         }
 
-        banishUser.FamilyParent = null;
+        banishUser.FamilyId = null;
+        banishUser.Family = null;
 
         await userService.SaveAsync(banishUser);
 

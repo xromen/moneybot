@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MoneyBotTelegram.Commands.Common;
-using MoneyBotTelegram.Commands.Family;
+using MoneyBotTelegram.Commands.FamilyCommands;
 using MoneyBotTelegram.Infrasctructure;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
@@ -22,7 +22,7 @@ public class MeCommandHandler(
     {
         var userId = message.From?.Id;
 
-        var user = await userService.GetAsync(userId.Value, cancellationToken);
+        var user = await db.Users.Include(c => c.Family).ThenInclude(c => c.Owner).SingleOrDefaultAsync(c => c.Id == userId);
 
         if (user == null)
         {
@@ -31,15 +31,15 @@ public class MeCommandHandler(
         }
 
         var familyOwner = string.Empty;
-        var isOwnerFamily = user.FamilyParentId == null;//await db.Users.Include(c => c.FamilyParent).AnyAsync(c => c.FamilyParent != null && c.FamilyParent.Id == userId);
+        var isOwnerFamily = user.Family?.OwnerId == userId;
 
-        if (isOwnerFamily)
+        if (user.Family != null && user.Family.OwnerId == userId)
         {
             familyOwner = "Вы";
         }
-        else if (user.FamilyParent != null)
+        else if (user.Family != null)
         {
-            familyOwner = user.FamilyParent.FirstName;
+            familyOwner = user.Family.Owner.FirstName;
         }
         else
         {
@@ -47,18 +47,8 @@ public class MeCommandHandler(
         }
 
         var keyboard = keyboardFactory.Empty();
-        if (user.FamilyParent != null)
-        {
-            keyboard.AddButton("❌ Выйти из семьи", LeaveFamilyCommandHandler.Metadata.Command);
-        }
-        //else if (user.FamilyParent == null && !isOwnerFamily)
-        //{
-        //    keyboard.AddButton("➕ Присоединиться к семье", JoinFamilyCommandHandler.Metadata.Command);
-        //}
-        if (isOwnerFamily)
-        {
-            keyboard.AddButton("👨‍👩‍👦 Управление семьей", FamilySettingsCommandHandler.Metadata.Command);
-        }
+
+        keyboard.AddButton("👨‍👩‍👦 Управление семьей", FamilySettingsCommandHandler.Metadata.Command);
 
         keyboard.AddNewLine()
             .AddBackButton();

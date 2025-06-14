@@ -50,6 +50,13 @@ public class AddTransactionCommandHandler(
 
         var responseText = string.Empty;
         var keyboard = keyboardFactory.Empty();
+        var cancelKeyboard = keyboardFactory.AddButton("🚫 Отменить", BuildArgs(new() { Cancel = true })).Create();
+
+        if(args != null && args.Cancel.HasValue && args.Cancel.Value)
+        {
+            state = AddTransactionState.Idle;
+            conversation.SetState(user.Id, state);
+        }
 
         switch (state)
         {
@@ -70,7 +77,7 @@ public class AddTransactionCommandHandler(
                     }
                     else
                     {
-                        await SendOrEditMessage(bot, message, "💲 Введите сумму:", null, editMessage);
+                        await SendOrEditMessage(bot, message, "💲 Введите сумму:", cancelKeyboard, editMessage);
                         return;
                     }
                     break;
@@ -87,7 +94,7 @@ public class AddTransactionCommandHandler(
                     }
                     else
                     {
-                        await SendOrEditMessage(bot, message, "📝 Введите описание:", null, editMessage);
+                        await SendOrEditMessage(bot, message, "📝 Введите описание:", cancelKeyboard, editMessage);
                     }
                     break;
                 }
@@ -129,7 +136,7 @@ public class AddTransactionCommandHandler(
                     }
                     else
                     {
-                        await SendOrEditMessage(bot, message, "📅 Введите дату формата dd.MM.yyyy:", null, editMessage);
+                        await SendOrEditMessage(bot, message, "📅 Введите дату формата dd.MM.yyyy:", cancelKeyboard, editMessage);
                         return;
                     }
                     break;

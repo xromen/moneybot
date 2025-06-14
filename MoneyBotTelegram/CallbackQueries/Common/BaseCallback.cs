@@ -1,4 +1,5 @@
-﻿using MoneyBotTelegram.Common;
+﻿using MoneyBotTelegram.Commands.Common;
+using MoneyBotTelegram.Common;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -15,7 +16,7 @@ public abstract class BaseCallback : ICallbackQueryHandler
     public abstract Task HandleCallbackAsync(ITelegramBotClient bot, CallbackQuery callbackQuery, CancellationToken cancellationToken);
 }
 
-public abstract class BaseCallback<TArgs> : BaseCallback where TArgs : new()
+public abstract class BaseCallback<TArgs> : BaseCallback where TArgs : BaseArgs
 {
     public TArgs ParseArgs(CallbackQuery callback)
     {

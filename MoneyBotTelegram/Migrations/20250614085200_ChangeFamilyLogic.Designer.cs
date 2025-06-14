@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MoneyBotTelegram.Infrasctructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MoneyBotTelegram.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250614085200_ChangeFamilyLogic")]
+    partial class ChangeFamilyLogic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,10 +93,6 @@ namespace MoneyBotTelegram.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("category_id");
 
-                    b.Property<string>("CheckQrCodeRaw")
-                        .HasColumnType("text")
-                        .HasColumnName("check_qr_code_raw");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date")
                         .HasColumnName("date");
@@ -160,6 +159,10 @@ namespace MoneyBotTelegram.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("category_id");
+
                     b.Property<long?>("MoneyTransactionId")
                         .HasColumnType("bigint")
                         .HasColumnName("money_transaction_id");
@@ -180,6 +183,9 @@ namespace MoneyBotTelegram.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_purchase_items");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_purchase_items_category_id");
 
                     b.HasIndex("MoneyTransactionId")
                         .HasDatabaseName("ix_purchase_items_money_transaction_id");
@@ -282,10 +288,19 @@ namespace MoneyBotTelegram.Migrations
 
             modelBuilder.Entity("MoneyBotTelegram.Infrasctructure.Entities.PurchaseItem", b =>
                 {
+                    b.HasOne("MoneyBotTelegram.Infrasctructure.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_items_categories_category_id");
+
                     b.HasOne("MoneyBotTelegram.Infrasctructure.Entities.MoneyTransaction", null)
                         .WithMany("Items")
                         .HasForeignKey("MoneyTransactionId")
                         .HasConstraintName("fk_purchase_items_money_transactions_money_transaction_id");
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("MoneyBotTelegram.Infrasctructure.Entities.User", b =>

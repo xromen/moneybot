@@ -8,6 +8,7 @@ namespace MoneyBotTelegram.Infrasctructure
         public DbSet<MoneyTransaction> MoneyTransactions => Set<MoneyTransaction>();
         public DbSet<Place> Places => Set<Place>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<Family> Families => Set<Family>();
         public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
         public DbSet<Category> Categories => Set<Category>();
     }

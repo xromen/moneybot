@@ -13,7 +13,7 @@ using System.ComponentModel;
 
 namespace MoneyBotTelegram.Commands.Transaction;
 
-public class TransactionsGetArgs
+public class TransactionsGetArgs : BaseArgs
 {
     public DatePeriod? Period { get; set; }
     public DateOnly? DateFrom {  get; set; }
@@ -80,7 +80,7 @@ public class TransactionsGetCommandHandler(
         var user = message.From!;
         var text = message.Text!;
 
-        var dbUser = await userService.GetAsync(user.Id);
+        var dbUser = await db.Users.Include(c => c.Family).SingleOrDefaultAsync(c => c.Id == user.Id);
 
         if (dbUser == null)
         {
@@ -96,7 +96,7 @@ public class TransactionsGetCommandHandler(
             args.Period ??= DatePeriod.Day;
         }
 
-        var familyMembers = await db.Users.Where(c => c.Id == user.Id || c.FamilyParentId == user.Id || c.Id == dbUser.FamilyParentId || c.FamilyParentId == dbUser.FamilyParentId).ToListAsync();
+        var familyMembers = await db.Users.Include(c => c.Family).Where(c => c.FamilyId == dbUser.FamilyId).ToListAsync();
         var familyIds = familyMembers.Select(c => c.Id).ToList();
 
         var today = DateTime.Now;

@@ -1,10 +1,15 @@
 ﻿using MoneyBotTelegram.CallbackQueries.Common;
 using MoneyBotTelegram.Commands.Common;
+using MoneyBotTelegram.Infrasctructure;
 using MoneyBotTelegram.Services;
+using MoneyBotTelegram.Services.Models.ProverkaChekov;
+using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using ZXing;
+using ZXing.SkiaSharp;
 
 namespace MoneyBotTelegram;
 

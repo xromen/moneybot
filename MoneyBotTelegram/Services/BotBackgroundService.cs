@@ -28,7 +28,7 @@ public class BotBackgroundService(
         await using (var scope = serviceProvider.CreateAsyncScope())
         {
             var commandMetadatas = scope.ServiceProvider.GetRequiredService<IEnumerable<CommandMetadata>>();
-            var botCommands = commandMetadatas.Select(x => new BotCommand(x.Command, x.Description));
+            var botCommands = commandMetadatas.OrderBy(c => c.Order).Select(x => new BotCommand(x.Command, x.Description));
             await botClient.SetMyCommands(botCommands, cancellationToken: stoppingToken);
         }
 

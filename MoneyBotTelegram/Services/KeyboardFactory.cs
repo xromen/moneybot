@@ -53,7 +53,7 @@ public class KeyboardFactory(IUserService userService) : IKeyboardFactory
     }
     public IKeyboardFactory AddToMainMenuButton()
     {
-        return AddButton("🏠 Домой", GlobalConstants.Callbacks.MainMenuPrefix);
+        return AddButton("🏠 Домой", StartCommandHandler.Metadata.Command);
     }
     public IKeyboardFactory Empty()
     {
@@ -122,7 +122,7 @@ public class KeyboardFactory(IUserService userService) : IKeyboardFactory
             ]);
 
             buttons.Add([
-                InlineKeyboardButton.WithCallbackData("➕ Список транзакций", TransactionsGetCommandHandler.Metadata.Command),
+                InlineKeyboardButton.WithCallbackData("📄 Список транзакций", TransactionsGetCommandHandler.Metadata.Command),
             ]);
 
             buttons.Add([

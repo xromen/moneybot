@@ -13,7 +13,4 @@ public class PurchaseItem : BaseEntity
 
     [Required]
     public decimal Quantity { get; set; }
-
-    [Required]
-    public Category Category { get; set; } = null!;
 }

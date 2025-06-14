@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MoneyBotTelegram.Services;
+using System;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using static Telegram.Bot.TelegramBotClient;
 
 namespace MoneyBotTelegram.Commands.Common;
 
@@ -38,7 +40,7 @@ public class CommandRouter
 
     public async Task<bool> HandleCommandAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken, bool editMessage = false)
     {
-        if(string.IsNullOrEmpty(message.Text) || message.From == null)
+        if((string.IsNullOrEmpty(message.Text) && message.Photo == null) || message.From == null)
             return false;
 
         _logger.LogInformation("Полученное сообщение от {UserId}: {Text}", message.From.Id, message.Text);
@@ -47,16 +49,28 @@ public class CommandRouter
 
         await handler.HandleAsync(bot, message, cancellationToken, editMessage);
 
-        var navigationState = new NavigationState()
-        {
-            HandlerName = handler.GetType().Name,
-            CommandOrCallback = message.Text,
-            IsMessage = true
-        };
+        bool redirected = false;
 
-        await using var scope = _serviceProvider.CreateAsyncScope();
-        var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
-        await navigationService.SetCurrent(message.From.Id, navigationState);
+        var redirect = handler as IRedirect;
+        if (redirect != null && redirect.CanRedirect(message))
+        {
+            redirected = await redirect.HandleRedirect(_serviceProvider, bot, message, cancellationToken);
+        }
+        
+        if(!redirected)
+        {
+            var navigationState = new NavigationState()
+            {
+                HandlerName = handler.GetType().Name,
+                CommandOrCallback = message.Text,
+                IsMessage = true
+            };
+
+            await using var scope = _serviceProvider.CreateAsyncScope();
+            var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
+            await navigationService.SetCurrent(message.From.Id, navigationState);
+        }
+
 
         return true;
     }

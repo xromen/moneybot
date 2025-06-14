@@ -26,31 +26,25 @@ public class UserService(
 {
     public Task<User?> GetAsync(long id, CancellationToken cancellationToken = default)
     {
-        return context.Users.Include(c => c.FamilyParent).FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        return context.Users.Include(c => c.Family).FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public Task<User?> GetAsync(string userName, CancellationToken cancellationToken = default)
     {
-        return context.Users.Include(c => c.FamilyParent).FirstOrDefaultAsync(c => c.Username.Equals(userName), cancellationToken);
+        return context.Users.Include(c => c.Family).FirstOrDefaultAsync(c => c.Username.Equals(userName), cancellationToken);
     }
 
     public async Task<IEnumerable<User>> GetYourFamilyAsync(long userId, CancellationToken cancellationToken = default)
     {
-        return await context.Users.Include(c => c.FamilyParent).Where(c => c.FamilyParent != null && c.FamilyParent.Id == userId).ToListAsync();
+        return await context.Users.Include(c => c.Family).ToListAsync();
     }
 
     public async Task<IEnumerable<User>> GetAllFamilyPersonsAsync(long userId, CancellationToken cancellationToken = default)
     {
         var user = await context.Users.FindAsync(userId, cancellationToken);
 
-        if (user.FamilyParentId.HasValue)
-        {
-            return await GetYourFamilyAsync(user.FamilyParentId.Value, cancellationToken);
-        }
-        else
-        {
-            return await GetYourFamilyAsync(userId, cancellationToken);
-        }
+        
+        return await GetYourFamilyAsync(userId, cancellationToken);
     }
 
     public async Task SaveAsync(User entity, CancellationToken cancellationToken = default)

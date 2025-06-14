@@ -37,7 +37,7 @@ public class CallbackQueryRouter(
             };
 
             var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
-            await navigationService.SetCurrent(callback.Message.From.Id, navigationState);
+            await navigationService.SetCurrent(callback.From.Id, navigationState);
 
             return true;
         }
@@ -55,15 +55,27 @@ public class CallbackQueryRouter(
             await messageHandler.HandleAsync(bot, message, cancellationToken, true);
             await bot.AnswerCallbackQuery(callback.Id, cancellationToken: cancellationToken);
 
-            var navigationState = new NavigationState()
-            {
-                HandlerName = messageHandler.GetType().Name,
-                CommandOrCallback = callback.Data,
-                IsMessage = false
-            };
+            bool redirected = false;
 
-            var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
-            await navigationService.SetCurrent(callback.Message.From.Id, navigationState);
+            var redirect = messageHandler as IRedirect;
+            if (redirect != null && redirect.CanRedirect(message))
+            {
+                redirected = await redirect.HandleRedirect(serviceProvider, bot, message, cancellationToken);
+            }
+            
+            if(!redirected)
+            {
+                var navigationState = new NavigationState()
+                {
+                    HandlerName = messageHandler.GetType().Name,
+                    CommandOrCallback = callback.Data,
+                    IsMessage = false
+                };
+
+                var navigationService = scope.ServiceProvider.GetRequiredService<IUserNavigationService>();
+                await navigationService.SetCurrent(callback.From.Id, navigationState);
+            }
+
 
             return true;
         }

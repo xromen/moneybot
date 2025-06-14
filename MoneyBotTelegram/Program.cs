@@ -3,6 +3,7 @@ using MoneyBotTelegram.CallbackQueries.Common;
 using MoneyBotTelegram.Commands.Common;
 using MoneyBotTelegram.Infrasctructure;
 using MoneyBotTelegram.Services;
+using System.Globalization;
 using Telegram.Bot;
 
 namespace MoneyBotTelegram
@@ -11,15 +12,23 @@ namespace MoneyBotTelegram
     {
         public static void Main(string[] args)
         {
+            CultureInfo russianCulture = new CultureInfo("ru-RU");
+
+            // Устанавливаем культуру по умолчанию для всех потоков
+            CultureInfo.DefaultThreadCurrentCulture = russianCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = russianCulture;
+
             var apiKey = Environment.GetEnvironmentVariable("TG_KEY");
             var pgCs = Environment.GetEnvironmentVariable("PG_CS");
 
-            if(string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(pgCs))
+            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(pgCs))
             {
                 throw new Exception("Not set environment variables");
             }
 
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddScoped<ProverkaChekaApiService>();
 
             builder.Services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
                 options.UseNpgsql(pgCs)

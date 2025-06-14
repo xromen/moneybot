@@ -23,6 +23,8 @@ namespace MoneyBotTelegram.Infrasctructure.Entities
 
         public string? Description { get; set; }
 
+        public string? CheckQrCodeRaw { get; set; }
+
         public List<PurchaseItem> Items { get; set; } = new List<PurchaseItem>();
     }
 }

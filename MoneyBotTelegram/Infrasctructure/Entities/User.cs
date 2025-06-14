@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MoneyBotTelegram.Infrasctructure.Entities;
 
@@ -19,6 +20,10 @@ public class User : BaseEntity
     [Required]
     public DateTime CreatedAt { get; set; }
 
-    public long? FamilyParentId { get; set; }
-    public User? FamilyParent { get; set; }
+    public long? FamilyId {  get; set; }
+    [ForeignKey(nameof(FamilyId))]
+    public Family? Family { get; set; }
+
+    [InverseProperty(nameof(Family.Owner))]
+    public virtual Family? OwnedFamily { get; set; }
 }

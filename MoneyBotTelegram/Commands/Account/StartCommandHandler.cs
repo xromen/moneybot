@@ -1,5 +1,5 @@
 ﻿using MoneyBotTelegram.Commands.Common;
-using MoneyBotTelegram.Commands.Family;
+using MoneyBotTelegram.Commands.FamilyCommands;
 using MoneyBotTelegram.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -8,7 +8,7 @@ namespace MoneyBotTelegram.Commands.Account;
 
 public class StartCommandHandler(IKeyboardFactory keyboardFactory) : BaseCommand, ICommandMetadata
 {
-    public static CommandMetadata Metadata { get; } = new("/start", "Начать работу с ботом");
+    public static CommandMetadata Metadata { get; } = new("/start", "Начать работу с ботом", Int32.MinValue);
 
     public override string Command => Metadata.Command;
 

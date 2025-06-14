@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 
 namespace MoneyBotTelegram.CallbackQueries;
 
-public class CategoryArgs
+public class CategoryArgs : BaseArgs
 {
     public long? Id { get; set; }
     public int? Nav { get; set; }

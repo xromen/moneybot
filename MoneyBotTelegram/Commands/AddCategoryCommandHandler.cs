@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace MoneyBotTelegram.Commands;
 
-public class AddCategoryArgs
+public class AddCategoryArgs : BaseArgs
 {
     public string? Name { get; set; }
     public long? ParentId { get; set; }

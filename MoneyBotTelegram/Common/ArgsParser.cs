@@ -3,15 +3,21 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using Telegram.Bot.Types;
+using MoneyBotTelegram.Commands.Common;
 
 namespace MoneyBotTelegram.Common;
 
-public static class ArgsParser<TArgs> where TArgs : new()
+public static class ArgsParser<TArgs> where TArgs : BaseArgs
 {
     private static Dictionary<Type, PropertyInfo[]> _propertiesDict = new();
 
     public static TArgs? ParseArgs(string text, string? prefix = null, char separator = GlobalConstants.Separator)
     {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return default;
+        }
+
         if (!string.IsNullOrEmpty(prefix) && !text.StartsWith(prefix))
         {
             return default;
@@ -29,7 +35,7 @@ public static class ArgsParser<TArgs> where TArgs : new()
 
             var converter = TypeDescriptor.GetConverter(property.PropertyType);
 
-            if (property.PropertyType == typeof(bool))
+            if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(bool?))
             {
                 property.SetValue(result, true, null);
                 i--;
