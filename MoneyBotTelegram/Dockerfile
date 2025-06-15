@@ -20,7 +20,7 @@ RUN dotnet build "./MoneyBotTelegram.csproj" -c $BUILD_CONFIGURATION -o /app/bui
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./MoneyBotTelegram.csproj" -c $BUILD_CONFIGURATION -o /app/publish -r linux-musl-x64 --self-contained true /p:UseAppHost=true /p:PublishTrimmed=false /p:IncludeNativeLibrariesForSelfExtract=true
+RUN dotnet publish "./MoneyBotTelegram.csproj" -c $BUILD_CONFIGURATION -o /app/publish -r linux-x64 --self-contained true /p:UseAppHost=true /p:PublishTrimmed=false /p:IncludeNativeLibrariesForSelfExtract=true
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
